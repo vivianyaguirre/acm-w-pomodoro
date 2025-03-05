@@ -1,0 +1,74 @@
+body {
+  font-family: Arial, sans-serif;
+  width: 350px;
+  height: 350px;
+  margin: 0;
+  padding: 0;
+  overflow: auto;
+
+}
+
+#floating-window {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  width: 300px;
+  background: white;
+  border: 1px solid #ccc;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  z-index: 10000; /* Ensure it stays on top */
+}
+
+#header {
+  padding: 10px;
+  background: #f1f1f1;
+  cursor: move; /* Indicate that the header is draggable */
+  border-bottom: 1px solid #ccc;
+}
+
+.container {
+  padding: 10px;
+}
+
+#timer {
+  font-size: 2em;
+  margin: 10px 0;
+  text-align: center;
+}
+
+.buttons button {
+  margin: 5px;
+  padding: 5px 10px;
+  font-size: 1em;
+  align-items: center;
+}
+
+ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px;
+  border-bottom: 1px solid #ccc;
+}
+
+.task-text {
+  flex-grow: 1;
+}
+
+.task-buttons button {
+  margin-left: 5px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1em;
+}
+
+.completed {
+  text-decoration: line-through;
+  color: #888;
+}
