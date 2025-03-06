@@ -1,20 +1,27 @@
 let timer;
-let timeLeft = 25 * 60; // 25 minutes in seconds
+let timeLeft = 25 * 60; // 25-minute default timer
 let isRunning = false;
 let tasks = [];
 
-// Update all tabs with the current timer and tasks
+// Load saved data from storage when extension starts
+chrome.storage.local.get(["timeLeft", "isRunning", "tasks"], (result) => {
+  if (result.timeLeft !== undefined) timeLeft = result.timeLeft;
+  if (result.isRunning !== undefined) isRunning = result.isRunning;
+  if (result.tasks !== undefined) tasks = result.tasks;
+});
+
+// Broadcast updates to all tabs
 function updateTabs() {
-  const time = `${Math.floor(timeLeft / 60)}:${(timeLeft % 60).toString().padStart(2, "0")}`;
-  chrome.tabs.query({}, (tabs) => {
-    tabs.forEach(tab => {
-      chrome.tabs.sendMessage(tab.id, { action: "updateTimer", time });
-      chrome.tabs.sendMessage(tab.id, { action: "updateTasks", tasks });
-    });
+  chrome.storage.local.set({ timeLeft, isRunning, tasks });
+
+  chrome.runtime.sendMessage({
+    action: "update",
+    time: `${Math.floor(timeLeft / 60)}:${(timeLeft % 60).toString().padStart(2, "0")}`,
+    tasks: tasks
   });
 }
 
-// Timer functions
+// Start Timer
 function startTimer() {
   if (!isRunning) {
     isRunning = true;
@@ -38,11 +45,14 @@ function startTimer() {
   }
 }
 
+// Pause Timer
 function pauseTimer() {
   clearInterval(timer);
   isRunning = false;
+  updateTabs();
 }
 
+// Reset Timer
 function resetTimer() {
   clearInterval(timer);
   isRunning = false;
@@ -50,43 +60,22 @@ function resetTimer() {
   updateTabs();
 }
 
-// Task functions
+// Task Management
 function addTask(taskText) {
-  tasks.push({ text: taskText, completed: false });
+  tasks.push(taskText);
   updateTabs();
-}
-
-function completeTask(taskText) {
-  const task = tasks.find(t => t.text === taskText);
-  if (task) {
-    task.completed = !task.completed;
-    updateTabs();
-  }
 }
 
 function deleteTask(taskText) {
-  tasks = tasks.filter(t => t.text !== taskText);
+  tasks = tasks.filter(task => task !== taskText);
   updateTabs();
 }
 
-// Listen for messages from content scripts
+// Listen for Messages
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.action === "startTimer") {
-    startTimer();
-  }
-  if (message.action === "pauseTimer") {
-    pauseTimer();
-  }
-  if (message.action === "resetTimer") {
-    resetTimer();
-  }
-  if (message.action === "addTask") {
-    addTask(message.task);
-  }
-  if (message.action === "completeTask") {
-    completeTask(message.task);
-  }
-  if (message.action === "deleteTask") {
-    deleteTask(message.task);
-  }
+  if (message.action === "startTimer") startTimer();
+  if (message.action === "pauseTimer") pauseTimer();
+  if (message.action === "resetTimer") resetTimer();
+  if (message.action === "addTask") addTask(message.task);
+  if (message.action === "deleteTask") deleteTask(message.task);
 });
